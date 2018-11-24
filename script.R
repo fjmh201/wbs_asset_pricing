@@ -25,3 +25,13 @@ linear2
 fiveFactorModel$pred<-predict(linear2,fiveFactorModel)
 
 cor(fiveFactorModel$`Mkt-RF`,fiveFactorModel$pred)
+
+
+factors25<-read_csv("25_Portfolios_5x5.CSV",skip=15) %>% 
+  rename(Date = X1) %>% 
+  gather(key = "Portfolio",value = "Value",-Date) %>% 
+  mutate("Size" = str_split_fixed(Portfolio," ",2)[,1],"B/M" = str_split_fixed(Portfolio," ",2)[,2])
+
+firstCorrelations<-factors25 %>% 
+  filter(Date>=196401&Date<=199301) %>% 
+  group_by()
