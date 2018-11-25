@@ -1,0 +1,101 @@
+---
+title: "Asset pricing group project"
+author: "Felix Hemsted"
+date: "25 November 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(digits=22)
+```
+
+#Getting data and setup
+
+```{r setupData}
+library(tidyverse)
+library(lubridate)
+library(knitr)
+
+factors25<-read_csv("25_Portfolios_5x5.CSV",skip=15) %>% 
+  rename(Date = X1) %>% 
+  gather(key = "Portfolio",value = "Value",-Date) %>% 
+  mutate("Size" = str_split_fixed(Portfolio," ",2)[,1],"B/M" = str_split_fixed(Portfolio," ",2)[,2])
+
+
+
+#getting market performance and risk free rate
+
+marketAndRiskFree<-read_csv("F-F_Research_Data_5_Factors_2x3.CSV",skip=3) %>% 
+  rename(Date = X1,MKT = "Mkt-RF") %>% select(Date,MKT,RF) %>% 
+  mutate(Date = as.numeric(Date)) %>% 
+  mutate(MKT = as.numeric(MKT),RF = as.numeric(RF))
+
+firstCorrelations<-factors25 %>% 
+  filter(Date>=196401&Date<=199301) %>% 
+  left_join(marketAndRiskFree) %>% 
+  mutate("excessReturn" = Value - RF)
+
+groupings<-unique(factors25$Portfolio)
+
+
+for(i in 1:length(groupings)){
+  dataNeeded<-filter(firstCorrelations,Portfolio == groupings[i])
+  
+  model<-lm(formula = Value~MKT,data=dataNeeded)
+  dataNeeded$prediction<-predict(model,dataNeeded)
+  correl<-cor(dataNeeded$Value,dataNeeded$prediction)
+  modelSummary<-summary(model)
+  
+  beta<-modelSummary$coefficients["MKT","Estimate"]
+  alpha<-modelSummary$coefficients["(Intercept)","Estimate"]
+  alphaSignificance<-modelSummary$coefficients["(Intercept)","Pr(>|t|)"]
+  meanReturn<-mean(dataNeeded$excessReturn)
+  tempDF<-data.frame("Size" = unique(dataNeeded$Size),"B/M" = unique(dataNeeded$`B/M`),"meanReturn" = meanReturn,"alpha" = alpha,"alphaSignificance" = alphaSignificance,"beta" = beta,stringsAsFactors = F)
+  
+  if(exists("permDF")){
+    permDF<-full_join(permDF,tempDF,by=names(tempDF))
+  }else{
+    permDF<-tempDF
+  }
+}
+
+
+meanReturnTable<-permDF %>% 
+  mutate(Size = factor(Size,levels = c("SMALL","ME1","ME2","ME3","ME4","ME5","BIG")),
+         B.M = factor(B.M,levels = c("LoBM","BM1","BM2","BM3","BM4","BM5","HiBM"))) %>% 
+  select(Size,B.M,meanReturn) %>% 
+  spread(key = "B.M",value = "meanReturn")
+
+
+kable(meanReturnTable)
+
+betaTable<-permDF %>% 
+  mutate(Size = factor(Size,levels = c("SMALL","ME1","ME2","ME3","ME4","ME5","BIG")),
+         B.M = factor(B.M,levels = c("LoBM","BM1","BM2","BM3","BM4","BM5","HiBM"))) %>% 
+  select(Size,B.M,beta) %>% 
+  spread(key = "B.M",value = "beta")
+
+
+kable(betaTable)
+
+alphaTable<-permDF %>% 
+  mutate(Size = factor(Size,levels = c("SMALL","ME1","ME2","ME3","ME4","ME5","BIG")),
+         B.M = factor(B.M,levels = c("LoBM","BM1","BM2","BM3","BM4","BM5","HiBM"))) %>% 
+  select(Size,B.M,alpha) %>% 
+  spread(key = "B.M",value = "alpha")
+
+
+
+kable(alphaTable)
+options(scipen = 0)
+
+alphaSignificanceTable<-permDF %>% 
+  mutate(Size = factor(Size,levels = c("SMALL","ME1","ME2","ME3","ME4","ME5","BIG")),
+         B.M = factor(B.M,levels = c("LoBM","BM1","BM2","BM3","BM4","BM5","HiBM"))) %>% 
+  select(Size,B.M,alphaSignificance) %>% 
+  spread(key = "B.M",value = "alphaSignificance")
+
+
+kable(alphaSignificanceTable)
+```
