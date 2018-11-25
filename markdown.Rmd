@@ -7,8 +7,9 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-options(digits=22)
+
 ```
+
 
 #Getting data and setup
 
@@ -44,14 +45,15 @@ for(i in 1:length(groupings)){
   
   model<-lm(formula = Value~MKT,data=dataNeeded)
   dataNeeded$prediction<-predict(model,dataNeeded)
-  correl<-cor(dataNeeded$Value,dataNeeded$prediction)
+  
   modelSummary<-summary(model)
   
   beta<-modelSummary$coefficients["MKT","Estimate"]
   alpha<-modelSummary$coefficients["(Intercept)","Estimate"]
   alphaSignificance<-modelSummary$coefficients["(Intercept)","Pr(>|t|)"]
   meanReturn<-mean(dataNeeded$excessReturn)
-  tempDF<-data.frame("Size" = unique(dataNeeded$Size),"B/M" = unique(dataNeeded$`B/M`),"meanReturn" = meanReturn,"alpha" = alpha,"alphaSignificance" = alphaSignificance,"beta" = beta,stringsAsFactors = F)
+  r2<-modelSummary$r.squared
+  tempDF<-data.frame("Size" = unique(dataNeeded$Size),"B/M" = unique(dataNeeded$`B/M`),"meanReturn" = meanReturn,"alpha" = alpha,"alphaSignificance" = alphaSignificance,"beta" = beta,"r2" = r2,stringsAsFactors = F)
   
   if(exists("permDF")){
     permDF<-full_join(permDF,tempDF,by=names(tempDF))
@@ -98,4 +100,12 @@ alphaSignificanceTable<-permDF %>%
 
 
 kable(alphaSignificanceTable)
+
+r2<-permDF %>% 
+  mutate(Size = factor(Size,levels = c("SMALL","ME1","ME2","ME3","ME4","ME5","BIG")),
+         B.M = factor(B.M,levels = c("LoBM","BM1","BM2","BM3","BM4","BM5","HiBM"))) %>% 
+  select(Size,B.M,r2) %>% 
+  spread(key = "B.M",value = "r2")
+
+kable(r2)
 ```
