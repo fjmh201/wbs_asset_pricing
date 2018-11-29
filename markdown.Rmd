@@ -33,7 +33,7 @@ marketAndRiskFree<-read_csv("F-F_Research_Data_5_Factors_2x3.CSV",skip=3,n_max =
   mutate(MKT = as.numeric(MKT),RF = as.numeric(RF))
 
 firstCorrelations<-factors25 %>% 
-  filter(Date>=196401&Date<=199301) %>% 
+  filter(Date>=196401&Date<199301) %>% 
   left_join(marketAndRiskFree) %>% 
   mutate("excessReturn" = Value - RF)
 
@@ -123,7 +123,7 @@ marketAndRiskFreeDaily<-read_csv("F-F_Research_Data_5_Factors_2x3_daily.CSV",ski
   mutate(MKT = as.numeric(MKT),RF = as.numeric(RF))
 
 firstCorrelationsDaily<-factors25Daily %>% 
-  filter(Date>=19640101&Date<=19930131) %>% 
+  filter(Date>=19640101&Date<19930104)%>% 
   left_join(marketAndRiskFreeDaily) %>% 
   mutate("excessReturn" = Value - RF)
 
@@ -225,7 +225,7 @@ ggplot(firstCorrelations1Daily,aes(x=Predicted_return,y=excessReturn))+geom_poin
 
 ```{r datesAfter}
 secondCorrelations<-factors25 %>% 
-  filter(Date>199301) %>% 
+  filter(Date>=199301&Date<201501)%>% 
   left_join(marketAndRiskFree) %>% 
   mutate("excessReturn" = Value - RF)
 
@@ -299,7 +299,7 @@ secondr2<-secondPermDF %>%
 kable(secondr2)
 
 secondCorrelationsDaily<-factors25Daily %>% 
-  filter(Date>19930131) %>% 
+   filter(Date>=19930104&Date<20150102) %>% 
   left_join(marketAndRiskFreeDaily) %>% 
   mutate("excessReturn" = Value - RF)
 
