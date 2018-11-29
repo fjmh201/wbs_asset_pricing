@@ -211,4 +211,11 @@ firstCorrelations1<-permDF %>%
 
 
 ggplot(firstCorrelations1,aes(x=Predicted_return,y=excessReturn))+geom_point()+geom_abline(slope=1,colour="#E41A1C")
+
+firstCorrelations1Daily<-permDFDaily %>% 
+  rename("B/M" = "B.M") %>% 
+  right_join(firstCorrelationsDaily)%>% 
+  mutate(Predicted_return = beta * (MKT-RF) - RF)
+
+ggplot(firstCorrelations1Daily,aes(x=Predicted_return,y=excessReturn))+geom_point()+geom_abline(slope=1,colour="#E41A1C")
 ```
