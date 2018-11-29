@@ -5,7 +5,10 @@ date: "25 November 2018"
 output: html_document
 ---
 
+```{r}
 
+knitr::opts_chunk$set(echo = TRUE)
+```
 
 
 #Getting data and setup
@@ -15,7 +18,7 @@ library(tidyverse)
 library(lubridate)
 library(knitr)
 
-factors25<-read_csv("25_Portfolios_5x5.CSV",skip=15) %>% 
+factors25<-read_csv("25_Portfolios_5x5.CSV",skip=15,n_max = 1107) %>% 
   rename(Date = X1) %>% 
   gather(key = "Portfolio",value = "Value",-Date) %>% 
   mutate("Size" = str_split_fixed(Portfolio," ",2)[,1],"B/M" = str_split_fixed(Portfolio," ",2)[,2])
@@ -24,7 +27,7 @@ factors25<-read_csv("25_Portfolios_5x5.CSV",skip=15) %>%
 
 #getting market performance and risk free rate
 
-marketAndRiskFree<-read_csv("F-F_Research_Data_5_Factors_2x3.CSV",skip=3) %>% 
+marketAndRiskFree<-read_csv("F-F_Research_Data_5_Factors_2x3.CSV",skip=3,n_max = 663) %>% 
   rename(Date = X1,MKT = "Mkt-RF") %>% select(Date,MKT,RF) %>% 
   mutate(Date = as.numeric(Date)) %>% 
   mutate(MKT = as.numeric(MKT),RF = as.numeric(RF))
@@ -108,7 +111,7 @@ kable(r2)
 
 ##daily
 
-factors25Daily<-read_csv("25_Portfolios_5x5_Daily.CSV",skip = 18) %>% 
+factors25Daily<-read_csv("25_Portfolios_5x5_Daily.CSV",skip = 18,n_max = 23428) %>% 
   rename(Date = X1) %>% 
   gather(key = "Portfolio",value = "Value",-Date) %>% 
   mutate("Size" = str_split_fixed(Portfolio," ",2)[,1],"B/M" = str_split_fixed(Portfolio," ",2)[,2])
@@ -195,4 +198,17 @@ r2Daily<-permDFDaily %>%
 
 kable(r2Daily)
 
+```
+
+
+#Excess returns
+
+```{r excess}
+firstCorrelations1<-permDF %>% 
+  rename("B/M" = "B.M") %>% 
+  right_join(firstCorrelations) %>% 
+  mutate(Predicted_return = beta * (MKT-RF) - RF)
+
+
+ggplot(firstCorrelations1,aes(x=Predicted_return,y=excessReturn))+geom_point()+geom_abline(slope=1,colour="#E41A1C")
 ```
