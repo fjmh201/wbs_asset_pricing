@@ -219,3 +219,7 @@ permDF2$Portfolio = paste(permDF2$Size,permDF2$B.M,sep = "_")
 
 ggplot(permDF2,aes(x=predictedExcessReturn,y=meanReturn,label = Portfolio))+geom_point()+xlab("CAPM excess return")+ylab("Actual excess return")+geom_abline(slope=1,colour="#E41A1C")+geom_text_repel()+ggtitle("1933.1 to 2015.1")
 ```
+
+Looking at the period between January 1933 and December 1964, we can see that the CAPM fairly accurately predicts the excess returns of every portfolio, with an average r^2^ of `r round(mean(permDF1$r2),digits = 2)`, and a very small average alpha of `r round(mean(permDF1$alpha),digits=2)`. This shows that, when the CAPM was being developed in the early 1960's, it was a fairly accurate model. 
+
+By contrast, when we look at excess returns between January 1933 and January 2015, we find that the average r^2^ of the CAPM has dropped to `r round(mean(permDF2$r2),digits=2)`, whilst the average alpha has increased to `r round(mean(permDF2$r2),digits=2)`. This must mean that, between 1964 and 2015, the CAPM has lost some of its predictive ability, as other factors have become more important in determining the returns of an asset.
