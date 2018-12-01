@@ -41,7 +41,7 @@ groupings<-unique(factors25$Portfolio)
 for(i in 1:length(groupings)){
   dataNeeded<-filter(firstCorrelations,Portfolio == groupings[i])
   
-  model<-lm(formula = Value~MKT,data=dataNeeded)
+  model<-lm(formula = excessReturn~MKT,data=dataNeeded)
   dataNeeded$prediction<-predict(model,dataNeeded)
   
   modelSummary<-summary(model)
@@ -100,3 +100,11 @@ kable(alphaTable)
 kable(alphaSignificanceTable)
 kable(r2)
 ```
+
+#Question 2
+
+Generally, returns are increasing as the Book-Market ratio increases, and as firms get smaller. This implies that the market undervalues smaller, value firms, creating the opportunity for higher returns.
+
+#Question 3
+
+#Question 4

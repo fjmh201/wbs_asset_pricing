@@ -132,7 +132,7 @@ groupingsDaily<-unique(factors25Daily$Portfolio)
 for(i in 1:length(groupingsDaily)){
   dataNeeded<-filter(firstCorrelationsDaily,Portfolio == groupingsDaily[i])
   
-  model<-lm(formula = Value~MKT,data=dataNeeded)
+  model<-lm(formula = excessReturn~MKT,data=dataNeeded)
   dataNeeded$prediction<-predict(model,dataNeeded)
   
   modelSummary<-summary(model)
