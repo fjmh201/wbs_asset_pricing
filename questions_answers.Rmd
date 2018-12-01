@@ -15,6 +15,7 @@ knitr::opts_chunk$set(echo = TRUE,message = F,warning = F)
 library(tidyverse)
 library(lubridate)
 library(knitr)
+library(ggrepel)
 
 factors25<-read_csv("25_Portfolios_5x5.CSV",skip=15,n_max = 1107) %>% 
   rename(Date = X1) %>% 
@@ -25,7 +26,7 @@ factors25<-read_csv("25_Portfolios_5x5.CSV",skip=15,n_max = 1107) %>%
 
 #getting market performance and risk free rate
 
-marketAndRiskFree<-read_csv("F-F_Research_Data_5_Factors_2x3.CSV",skip=3,n_max = 663) %>% 
+marketAndRiskFree<-read_csv("F-F_Research_Data_Factors.CSV",skip=3,n_max = 1108) %>% 
   rename(Date = X1,MKT = "Mkt-RF") %>% select(Date,MKT,RF) %>% 
   mutate(Date = as.numeric(Date)) %>% 
   mutate(MKT = as.numeric(MKT),RF = as.numeric(RF))
@@ -119,4 +120,102 @@ Furthermore, the increase in reurns for smaller firms is not matched 1:1 by an i
 
 #Question 4
 
-All of the alphas highlighted in the above table are significant at the P<0.05 level. This suggests that, for certain asset portfolios, there is a statistically significant return that cannot be explained by the CAPM.
+All of the alphas highlighted in the above table are significant at the P<0.05 level. This suggests that, for certain asset portfolios, there is a statistically significant return that cannot be explained by the CAPM. The r^2^ values are fairly high, ranging from `r suppressWarnings(round(min(as.numeric(as.matrix(r2)),na.rm=T),digits=2))` at the low end to `r suppressWarnings(round(max(as.numeric(as.matrix(r2)),na.rm=T),digits=2))` at the high end. This suggests that the CAPM is fairly accurate at predicting returns, although a large amount of the excess returns observed remain unexplained.
+
+#Question 5
+
+```{r q5}
+
+permDF$Portfolio = paste(permDF$Size,permDF$B.M,sep = "_")
+
+ggplot(permDF,aes(x=predictedExcessReturn,y=meanReturn,label = Portfolio))+geom_point()+xlab("CAPM excess return")+ylab("Actual excess return")+geom_abline(slope=1,colour="#E41A1C")+geom_text_repel()
+```
+
+#Question 6
+
+The above chart shoes that the CAPM does appear to work for a small handful of portfolios - however only around five or six at best. This reinforces the idea that the CAPM is missing some fundamental variables that create excess returns.
+
+#Question 7
+
+As we move from large firms to smaller firms, the excess return increases. This can be partly explained by the increase in betas observed - howver the increase does not fully explain the excess returns we see. This suggests that there are additional factors at play in addition to how an asset's price changes relative to the market.
+
+#Question 8
+
+With value firms, or those who have a high book-to-model ratio, we see that those portfolios with a much higher relative book value perform much better than those with a low relative book value, whilst also having much lower betas. This suggests that investors should be able to get a much higher rate of return by investing in value companies, and at a much lower risk!
+
+This puzzle is much larger than the small / large firms puzzle, as a fundamental tenant of the CAPM is that returns should increase propotionatley with risks taken - yet this strategy allows you do to the opposite. It may be the case that investors are enamoured with the growth potential of firms with a low book-to-market ratio, and therefore underprice value firms, creating the greater returns avaliable.
+
+#Question 9
+
+
+```{r question9}
+firstCorrelations1<-factors25 %>% 
+  filter(Date>=19301&Date<196312) %>% 
+  left_join(marketAndRiskFree) %>% 
+  mutate("excessReturn" = Value - RF)
+
+for(i in 1:length(groupings)){
+  dataNeeded<-filter(firstCorrelations1,Portfolio == groupings[i])
+  
+  model<-lm(formula = excessReturn~MKT,data=dataNeeded)
+  dataNeeded$prediction<-predict(model,dataNeeded)
+  
+  modelSummary<-summary(model)
+  
+  beta<-modelSummary$coefficients["MKT","Estimate"]
+  alpha<-modelSummary$coefficients["(Intercept)","Estimate"]
+  alphaSignificance<-modelSummary$coefficients["(Intercept)","Pr(>|t|)"]
+  meanReturn<-mean(dataNeeded$excessReturn)
+  marketReturn<-mean(dataNeeded$MKT)
+  
+  
+  
+  r2<-modelSummary$r.squared
+  tempDF<-data.frame("Size" = unique(dataNeeded$Size),"B/M" = unique(dataNeeded$`B/M`),"meanReturn" = meanReturn,"alpha" = alpha,"alphaSignificance" = alphaSignificance,"beta" = beta,"r2" = r2,"mktReturn" = marketReturn,"predictedExcessReturn" =  (beta*marketReturn),stringsAsFactors = F) 
+  
+  if(exists("permDF1")){
+    permDF1<-full_join(permDF1,tempDF,by=names(tempDF))
+  }else{
+    permDF1<-tempDF
+  }
+}
+
+permDF1$Portfolio = paste(permDF1$Size,permDF1$B.M,sep = "_")
+
+ggplot(permDF1,aes(x=predictedExcessReturn,y=meanReturn,label = Portfolio))+geom_point()+xlab("CAPM excess return")+ylab("Actual excess return")+geom_abline(slope=1,colour="#E41A1C")+geom_text_repel()+ggtitle("1933.1 to 1963.12")
+
+firstCorrelations2<-factors25 %>% 
+  filter(Date>=193301&Date<201501) %>% 
+  left_join(marketAndRiskFree) %>% 
+  mutate("excessReturn" = Value - RF)
+
+for(i in 1:length(groupings)){
+  dataNeeded<-filter(firstCorrelations2,Portfolio == groupings[i])
+  
+  model<-lm(formula = excessReturn~MKT,data=dataNeeded)
+  dataNeeded$prediction<-predict(model,dataNeeded)
+  
+  modelSummary<-summary(model)
+  
+  beta<-modelSummary$coefficients["MKT","Estimate"]
+  alpha<-modelSummary$coefficients["(Intercept)","Estimate"]
+  alphaSignificance<-modelSummary$coefficients["(Intercept)","Pr(>|t|)"]
+  meanReturn<-mean(dataNeeded$excessReturn)
+  marketReturn<-mean(dataNeeded$MKT)
+  
+  
+  
+  r2<-modelSummary$r.squared
+  tempDF<-data.frame("Size" = unique(dataNeeded$Size),"B/M" = unique(dataNeeded$`B/M`),"meanReturn" = meanReturn,"alpha" = alpha,"alphaSignificance" = alphaSignificance,"beta" = beta,"r2" = r2,"mktReturn" = marketReturn,"predictedExcessReturn" =  (beta*marketReturn),stringsAsFactors = F) 
+  
+  if(exists("permDF2")){
+    permDF2<-full_join(permDF2,tempDF,by=names(tempDF))
+  }else{
+    permDF2<-tempDF
+  }
+}
+
+permDF2$Portfolio = paste(permDF2$Size,permDF2$B.M,sep = "_")
+
+ggplot(permDF2,aes(x=predictedExcessReturn,y=meanReturn,label = Portfolio))+geom_point()+xlab("CAPM excess return")+ylab("Actual excess return")+geom_abline(slope=1,colour="#E41A1C")+geom_text_repel()+ggtitle("1933.1 to 2015.1")
+```
