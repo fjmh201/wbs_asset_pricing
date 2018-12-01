@@ -50,8 +50,12 @@ for(i in 1:length(groupings)){
   alpha<-modelSummary$coefficients["(Intercept)","Estimate"]
   alphaSignificance<-modelSummary$coefficients["(Intercept)","Pr(>|t|)"]
   meanReturn<-mean(dataNeeded$excessReturn)
+  marketReturn<-mean(dataNeeded$MKT)
+  
+  
+  
   r2<-modelSummary$r.squared
-  tempDF<-data.frame("Size" = unique(dataNeeded$Size),"B/M" = unique(dataNeeded$`B/M`),"meanReturn" = meanReturn,"alpha" = alpha,"alphaSignificance" = alphaSignificance,"beta" = beta,"r2" = r2,stringsAsFactors = F)
+  tempDF<-data.frame("Size" = unique(dataNeeded$Size),"B/M" = unique(dataNeeded$`B/M`),"meanReturn" = meanReturn,"alpha" = alpha,"alphaSignificance" = alphaSignificance,"beta" = beta,"r2" = r2,"mktReturn" = marketReturn,"predictedExcessReturn" =  (beta*marketReturn),stringsAsFactors = F) 
   
   if(exists("permDF")){
     permDF<-full_join(permDF,tempDF,by=names(tempDF))
@@ -94,6 +98,8 @@ r2<-permDF %>%
 #Question 1
 
 ```{r Q1}
+
+options(digits = 2)
 kable(meanReturnTable)
 kable(betaTable)
 kable(alphaTable)
@@ -107,4 +113,10 @@ Generally, returns are increasing as the Book-Market ratio increases, and as fir
 
 #Question 3
 
+The spread in average excess returns can be partly explained by the spread in the asset betas - or how risky each asset is relative to the market. We do see nthat the betas are slightly higher for smaller firms than for larger firms (the same case as for excess returns), but that they are smaller for firms with a higher book-market ratio - opposite what excess returns does. 
+
+Furthermore, the increase in reurns for smaller firms is not matched 1:1 by an increase in betas for them. This suggests that investors are choosing to not buy stocks of smaller firms or those with high book-market ratios, for a reason other than the riskiness of the asset, thus depressing the price of these assets and allowing them to generate a better return than what the CAPM would predict.
+
 #Question 4
+
+All of the alphas highlighted in the above table are significant at the P<0.05 level. This suggests that, for certain asset portfolios, there is a statistically significant return that cannot be explained by the CAPM.
